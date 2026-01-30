@@ -30,7 +30,13 @@ class Issue(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     priority = models.IntegerField(default=0)
-    assigned_to = models.CharField(max_length=100, blank=True)
+    assigned_to_id = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="assigned_issues"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
