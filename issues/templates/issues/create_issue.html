@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Report Issue{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        Report a Civic Issue
+    </div>
+
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="POTHOLE">Pothole</option>
+                    <option value="GARBAGE">Garbage</option>
+                    <option value="WATER">Water Leakage</option>
+                    <option value="STREETLIGHT">Street Light</option>
+                    <option value="DRAINAGE">Drainage</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Image</label>
+                <input type="file" name="image" class="form-control">
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <input type="number" step="any" name="latitude" class="form-control" placeholder="Latitude" required>
+                </div>
+                <div class="col">
+                    <input type="number" step="any" name="longitude" class="form-control" placeholder="Longitude" required>
+                </div>
+            </div>
+
+            <button class="btn btn-success mt-3">Submit Issue</button>
+            <a href="/my-issues/" class="btn btn-secondary mt-3">Back</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

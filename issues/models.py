@@ -30,7 +30,7 @@ class Issue(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     priority = models.IntegerField(default=0)
-    assigned_to_id = models.ForeignKey(
+    assigned_to = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
         null=True, 

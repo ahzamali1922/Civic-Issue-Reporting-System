@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Authority Dashboard{% endblock %}
+
+{% block content %}
+<h3>Assigned Issues</h3>
+
+{% for issue in issues %}
+<div class="card mb-3 shadow">
+    <div class="card-body">
+        <h5>{{ issue.title }}</h5>
+        <p>Status: <strong>{{ issue.status }}</strong></p>
+
+        <form method="post" action="{% url 'update_status' issue.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select mb-2">
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+            </select>
+            <button class="btn btn-success">Update Status</button>
+        </form>
+    </div>
+</div>
+{% empty %}
+<p>No assigned issues.</p>
+{% endfor %}
+{% endblock %}
