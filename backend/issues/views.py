@@ -10,8 +10,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import IssueSerializer
 
+from rest_framework.authentication import SessionAuthentication
+
+
 
 # Create your views here.
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return  # Skip CSRF check
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
