@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Activity, Clock, AlertTriangle, CheckCircle, Edit2, 
+  Activity, Clock, AlertTriangle, CheckCircle, 
   Trash2, Filter, AlertCircle, Trash, Droplet, Lightbulb, 
-  Waves, User, Wrench, Eye, Loader2
+  Waves, Wrench, Loader2
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -12,61 +12,80 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch data on mount
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const response = await api.get('/api/all-issues/');
-        const data = response.data;
-
-        // Calculate Stats based on Django Status Choices
-        setStats({
-          total: data.length,
-          pending: data.filter(i => i.status === 'PENDING').length,
-          inProgress: data.filter(i => i.status === 'IN_PROGRESS').length,
-          resolved: data.filter(i => i.status === 'RESOLVED').length,
-        });
-
-        // Map Django's integer priority
-        const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
-
-        const formattedIssues = data.map(issue => ({
-          id: issue.id,
-          title: issue.title,
-          location: `${issue.latitude.toFixed(4)}, ${issue.longitude.toFixed(4)}`, // Fallback since we don't have address text yet
-          category: issue.category,
-          severity: priorityMap[issue.priority] || 'Medium',
-          status: issue.status,
-          department: "Unassigned", // Placeholder: You can add departments to models.py later
-          date: new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        }));
-
-        setIssues(formattedIssues);
-      } catch (err) {
-        console.error("Admin fetch error:", err);
-        setError("Unable to load admin data. Please ensure you are logged in as an Authority.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdminData();
-  }, []);
-
-  // Helper for Status Badge Colors (Mapped to Django)
-  const getStatusDisplay = (status) => {
-    switch(status) {
-      case 'PENDING': 
-        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'Pending' };
-      case 'IN_PROGRESS': 
-        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench, label: 'In Progress' };
-      case 'RESOLVED': 
-        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Resolved' };
-      default: 
-        return { style: 'bg-gray-100 text-gray-800', icon: Clock, label: status };
+  // 1. Fetch data on mount
+  const fetchAdminData = async () => {
+    try {
+      const response = await api.get('/api/all-issues/');
+      const data = response.data;
+      updateStateWithNewData(data);
+    } catch (err) {
+      console.error("Admin fetch error:", err);
+      setError("Unable to load admin data. Please ensure you are logged in as an Authority.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  // Helper to calculate stats and format issues
+  const updateStateWithNewData = (data) => {
+    setStats({
+      total: data.length,
+      pending: data.filter(i => i.status === 'PENDING').length,
+      inProgress: data.filter(i => i.status === 'IN_PROGRESS').length,
+      resolved: data.filter(i => i.status === 'RESOLVED').length,
+    });
+
+    const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
+
+    const formattedIssues = data.map(issue => ({
+      id: issue.id,
+      title: issue.title,
+      location: `${issue.latitude.toFixed(4)}, ${issue.longitude.toFixed(4)}`,
+      category: issue.category,
+      severity: priorityMap[issue.priority] || 'Medium',
+      status: issue.status,
+      department: "Unassigned", 
+      date: new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }));
+
+    setIssues(formattedIssues);
+  };
+
+  // --- NEW: Handle Status Update ---
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      // Send PATCH request to Django
+      await api.patch(`/api/issues/${id}/status/`, { status: newStatus });
+      
+      // Re-fetch data to automatically update the table and the top stat counts!
+      fetchAdminData();
+    } catch (err) {
+      console.error("Update failed", err);
+      alert("Failed to update the issue status.");
+    }
+  };
+
+  // --- NEW: Handle Delete ---
+  const handleDelete = async (id) => {
+    if(window.confirm("Are you sure you want to permanently delete this issue?")) {
+      try {
+        // Send DELETE request to Django
+        await api.delete(`/api/issues/${id}/delete/`);
+        
+        // Remove it from the UI immediately and recalculate stats
+        fetchAdminData();
+      } catch (err) {
+        console.error("Delete failed", err);
+        alert("Failed to delete the issue.");
+      }
+    }
+  };
+
+  // UI Helpers
   const getSeverityStyle = (severity) => {
     switch(severity) {
       case 'Critical': return 'text-red-600 bg-red-50 border-red-200';
@@ -87,13 +106,6 @@ const AdminPanel = () => {
      }
   };
 
-  const handleDelete = (id) => {
-    if(window.confirm("Are you sure you want to delete this issue?")) {
-        // UI ONLY update for now. We will hook this up to Django later!
-        setIssues(issues.filter(issue => issue.id !== id));
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-indigo-600">
@@ -106,7 +118,6 @@ const AdminPanel = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       
-      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
@@ -183,15 +194,12 @@ const AdminPanel = () => {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Issue</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Severity</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Status</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Date</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-center">Actions</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Status Action</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-center">Delete</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {issues.map((issue) => {
-                const statusConfig = getStatusDisplay(issue.status);
-                const StatusIcon = statusConfig.icon;
                 const categoryConfig = getCategoryDisplay(issue.category);
                 const CategoryIcon = categoryConfig.icon;
 
@@ -199,7 +207,7 @@ const AdminPanel = () => {
                   <tr key={issue.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <p className="text-sm font-semibold text-gray-900 capitalize">{issue.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Lat: {issue.location.split(',')[0]}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Reported: {issue.date}</p>
                     </td>
                     
                     <td className="px-6 py-4">
@@ -216,29 +224,30 @@ const AdminPanel = () => {
                     </td>
                     
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${statusConfig.style}`}>
-                        <StatusIcon size={14} />
-                        {statusConfig.label}
-                      </span>
+                      {/* Interactive Status Dropdown that updates the DB immediately */}
+                      <select 
+                        value={issue.status}
+                        onChange={(e) => handleStatusChange(issue.id, e.target.value)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer ${
+                          issue.status === 'PENDING' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
+                          issue.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                          'bg-green-50 text-green-800 border-green-200'
+                        }`}
+                      >
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                      </select>
                     </td>
                     
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {issue.date}
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-3">
-                        <button className="text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Issue">
-                          <Edit2 size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(issue.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors" 
-                          title="Delete Issue"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => handleDelete(issue.id)}
+                        className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors" 
+                        title="Delete Issue"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </td>
                   </tr>
                 );

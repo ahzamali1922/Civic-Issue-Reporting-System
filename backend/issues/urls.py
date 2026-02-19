@@ -23,5 +23,8 @@ urlpatterns = [
     path('api/login/', views.api_login),
     path('api/all-issues/', views.api_all_issues),
 
+    path('api/issues/<int:pk>/status/', views.api_update_issue_status),
+    path('api/issues/<int:pk>/delete/', views.api_delete_issue),
+
 
 ]

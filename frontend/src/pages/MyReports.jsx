@@ -16,8 +16,8 @@ const MyReports = () => {
   useEffect(() => {
     const fetchMyIssues = async () => {
       try {
-        // Calls the api_my_issues view from your Django backend
-        const response = await api.get('/api/my_issues/'); 
+        // FIXED: Using a hyphen to match Django urls.py exactly!
+        const response = await api.get('/api/my-issues/'); 
         
         // Map Django's integer priority to our UI strings
         const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };

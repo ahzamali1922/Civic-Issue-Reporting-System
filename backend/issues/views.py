@@ -184,4 +184,50 @@ def update_issue_status(request, issue_id):
 
     return redirect('authority_dashboard')
 
+# --- ADD THESE AT THE BOTTOM OF views.py ---
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_update_issue_status(request, pk):
+    # Security check: Only staff (authorities) can update status
+    if not request.user.is_staff:
+        return Response({"error": "Unauthorized. Admins only."}, status=403)
+    
+    try:
+        issue = Issue.objects.get(pk=pk)
+    except Issue.DoesNotExist:
+        return Response({"error": "Issue not found"}, status=404)
+
+    new_status = request.data.get('status')
+    if new_status and new_status != issue.status:
+        # Save new status
+        issue.status = new_status
+        issue.save()
+        
+        # Log the history
+        IssueStatusHistory.objects.create(
+            issue=issue,
+            status=new_status,
+            message=f"Status updated to {new_status} by {request.user.username}"
+        )
+    
+    serializer = IssueSerializer(issue, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_delete_issue(request, pk):
+    # Security check: Only staff can delete
+    if not request.user.is_staff:
+        return Response({"error": "Unauthorized. Admins only."}, status=403)
+    
+    try:
+        issue = Issue.objects.get(pk=pk)
+        issue.delete()
+        return Response({"message": "Issue deleted successfully"}, status=204)
+    except Issue.DoesNotExist:
+        return Response({"error": "Issue not found"}, status=404)
 
