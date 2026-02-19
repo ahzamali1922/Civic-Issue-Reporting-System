@@ -1,25 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock, User, AlertCircle } from 'lucide-react';
+import { Lock, User, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { login } = useAuth(); // Bring in our real login function
   
-  // Check the URL to see if it's ?type=admin or ?type=citizen
   const loginType = searchParams.get('type') || 'citizen'; 
   const isAdmin = loginType === 'admin';
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
     
-    // MOCK LOGIN: Bypass backend for now and just navigate to the UI
-    if (isAdmin) {
-        navigate('/admin-panel');
-    } else {
+    try {
+      // Send the real request to Django
+      const userData = await login(username, password);
+      
+      // Verify role access
+      if (isAdmin) {
+        if (userData.is_staff) {
+            navigate('/admin-panel');
+        } else {
+            setError("Access Denied: You do not have authority privileges.");
+        }
+      } else {
         navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('Invalid username or password. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -27,7 +46,6 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-lg border border-gray-100">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isAdmin ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
             {isAdmin ? <Lock size={32} /> : <User size={32} />}
@@ -38,7 +56,13 @@ const Login = () => {
           <p className="text-gray-500 mt-2">Enter your credentials to continue</p>
         </div>
 
-        {/* Form */}
+        {error && (
+          <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm border border-red-100">
+            <AlertCircle size={18} />
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
@@ -72,13 +96,14 @@ const Login = () => {
 
           <button
             type="submit"
-            className={`w-full py-3 rounded-lg text-white font-medium shadow-sm transition-colors ${
+            disabled={isSubmitting}
+            className={`w-full py-3 rounded-lg text-white font-medium shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 ${
               isAdmin 
                 ? 'bg-purple-600 hover:bg-purple-700' 
                 : 'bg-indigo-600 hover:bg-indigo-700'
             }`}
           >
-            Sign In
+            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
           </button>
         </form>
 
@@ -95,5 +120,4 @@ const Login = () => {
   );
 };
 
-// THIS LINE IS CRITICAL - It prevents the "Element type is invalid" error
 export default Login;

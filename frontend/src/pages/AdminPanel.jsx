@@ -1,96 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Activity, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle, 
-  Edit2, 
-  Trash2, 
-  Filter,
-  AlertCircle,
-  Trash,
-  Droplet,
-  Lightbulb,
-  Waves,
-  User,
-  Wrench,
-  Eye
+  Activity, Clock, AlertTriangle, CheckCircle, Edit2, 
+  Trash2, Filter, AlertCircle, Trash, Droplet, Lightbulb, 
+  Waves, User, Wrench, Eye, Loader2
 } from 'lucide-react';
+import api from '../services/api';
 
 const AdminPanel = () => {
-  // Mock Data matching your screenshot exactly
-  const [issues, setIssues] = useState([
-    {
-      id: 1,
-      title: "Large Pothole on Main Street",
-      location: "Main Street & Oak Avenue",
-      category: "Pothole",
-      severity: "High",
-      status: "Submitted",
-      department: "—",
-      date: "Feb 17"
-    },
-    {
-      id: 2,
-      title: "Garbage Pile Behind Market",
-      location: "Behind Central Market, Sector 15",
-      category: "Garbage",
-      severity: "Medium",
-      status: "Assigned",
-      department: "Sanitation",
-      date: "Feb 17"
-    },
-    {
-      id: 3,
-      title: "Water Pipe Leaking Near School",
-      location: "Near Government School, Block B",
-      category: "Water Leakage",
-      severity: "Critical",
-      status: "In Progress",
-      department: "Water Department",
-      date: "Feb 17"
-    },
-    {
-      id: 4,
-      title: "Streetlight Out on Elm Road",
-      location: "Elm Road, Sector 22",
-      category: "Streetlight",
-      severity: "Medium",
-      status: "Under Review",
-      department: "—",
-      date: "Feb 17"
-    },
-    {
-      id: 5,
-      title: "Blocked Drainage Causing Flood",
-      location: "Park Avenue, Block C",
-      category: "Drainage",
-      severity: "High",
-      status: "Resolved",
-      department: "Public Works",
-      date: "Feb 17"
-    }
-  ]);
+  const [issues, setIssues] = useState([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, resolved: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Helper for Status Badge Colors & Icons
+  // Fetch data on mount
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const response = await api.get('/api/all-issues/');
+        const data = response.data;
+
+        // Calculate Stats based on Django Status Choices
+        setStats({
+          total: data.length,
+          pending: data.filter(i => i.status === 'PENDING').length,
+          inProgress: data.filter(i => i.status === 'IN_PROGRESS').length,
+          resolved: data.filter(i => i.status === 'RESOLVED').length,
+        });
+
+        // Map Django's integer priority
+        const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
+
+        const formattedIssues = data.map(issue => ({
+          id: issue.id,
+          title: issue.title,
+          location: `${issue.latitude.toFixed(4)}, ${issue.longitude.toFixed(4)}`, // Fallback since we don't have address text yet
+          category: issue.category,
+          severity: priorityMap[issue.priority] || 'Medium',
+          status: issue.status,
+          department: "Unassigned", // Placeholder: You can add departments to models.py later
+          date: new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        }));
+
+        setIssues(formattedIssues);
+      } catch (err) {
+        console.error("Admin fetch error:", err);
+        setError("Unable to load admin data. Please ensure you are logged in as an Authority.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
+
+  // Helper for Status Badge Colors (Mapped to Django)
   const getStatusDisplay = (status) => {
     switch(status) {
-      case 'Submitted': 
-        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock };
-      case 'Assigned': 
-        return { style: 'bg-purple-100 text-purple-800 border-purple-200', icon: User };
-      case 'In Progress': 
-        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench };
-      case 'Under Review': 
-        return { style: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: Eye };
-      case 'Resolved': 
-        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle };
+      case 'PENDING': 
+        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'Pending' };
+      case 'IN_PROGRESS': 
+        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench, label: 'In Progress' };
+      case 'RESOLVED': 
+        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Resolved' };
       default: 
-        return { style: 'bg-gray-100 text-gray-800', icon: Clock };
+        return { style: 'bg-gray-100 text-gray-800', icon: Clock, label: status };
     }
   };
 
-  // Helper for Severity Badge Colors
   const getSeverityStyle = (severity) => {
     switch(severity) {
       case 'Critical': return 'text-red-600 bg-red-50 border-red-200';
@@ -100,23 +76,32 @@ const AdminPanel = () => {
     }
   };
 
-  // Helper for Category Icons
   const getCategoryDisplay = (category) => {
      switch(category) {
-        case 'Pothole': return { color: 'text-orange-500', icon: AlertCircle };
-        case 'Garbage': return { color: 'text-green-500', icon: Trash };
-        case 'Water Leakage': return { color: 'text-blue-500', icon: Droplet };
-        case 'Streetlight': return { color: 'text-yellow-500', icon: Lightbulb };
-        case 'Drainage': return { color: 'text-cyan-500', icon: Waves };
-        default: return { color: 'text-gray-500', icon: AlertCircle };
+        case 'POTHOLE': return { color: 'text-orange-500', icon: AlertCircle, label: 'Pothole' };
+        case 'GARBAGE': return { color: 'text-green-500', icon: Trash, label: 'Garbage' };
+        case 'WATER': return { color: 'text-blue-500', icon: Droplet, label: 'Water Leakage' };
+        case 'STREETLIGHT': return { color: 'text-yellow-500', icon: Lightbulb, label: 'Streetlight' };
+        case 'DRAINAGE': return { color: 'text-cyan-500', icon: Waves, label: 'Drainage' };
+        default: return { color: 'text-gray-500', icon: AlertCircle, label: category };
      }
   };
 
   const handleDelete = (id) => {
     if(window.confirm("Are you sure you want to delete this issue?")) {
+        // UI ONLY update for now. We will hook this up to Django later!
         setIssues(issues.filter(issue => issue.id !== id));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-indigo-600">
+        <Loader2 className="animate-spin mb-4" size={32} />
+        <p className="font-medium">Loading Authority Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -139,12 +124,19 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 border border-red-100">
+          <AlertCircle size={20} />
+          {error}
+        </div>
+      )}
+
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-2">5</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</h3>
           </div>
           <div className="p-3 bg-indigo-50 rounded-lg">
             <Activity className="text-indigo-600" size={24} />
@@ -153,8 +145,8 @@ const AdminPanel = () => {
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending Review</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-2">2</h3>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending</p>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.pending}</h3>
           </div>
           <div className="p-3 bg-orange-50 rounded-lg">
             <Clock className="text-orange-600" size={24} />
@@ -164,17 +156,17 @@ const AdminPanel = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">In Progress</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-2">2</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.inProgress}</h3>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <AlertTriangle className="text-blue-600" size={24} />
+            <Wrench className="text-blue-600" size={24} />
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Resolved</p>
-            <h3 className="text-3xl font-bold text-gray-900 mt-2">1</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.resolved}</h3>
           </div>
           <div className="p-3 bg-green-50 rounded-lg">
             <CheckCircle className="text-green-600" size={24} />
@@ -192,27 +184,28 @@ const AdminPanel = () => {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Severity</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Status</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Department</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Date</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {issues.map((issue) => {
-                const StatusIcon = getStatusDisplay(issue.status).icon;
-                const CategoryIcon = getCategoryDisplay(issue.category).icon;
+                const statusConfig = getStatusDisplay(issue.status);
+                const StatusIcon = statusConfig.icon;
+                const categoryConfig = getCategoryDisplay(issue.category);
+                const CategoryIcon = categoryConfig.icon;
 
                 return (
                   <tr key={issue.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-gray-900">{issue.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{issue.location}</p>
+                      <p className="text-sm font-semibold text-gray-900 capitalize">{issue.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Lat: {issue.location.split(',')[0]}</p>
                     </td>
                     
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <CategoryIcon className={getCategoryDisplay(issue.category).color} size={18} />
-                        <span className="text-sm font-medium text-gray-700">{issue.category}</span>
+                        <CategoryIcon className={categoryConfig.color} size={18} />
+                        <span className="text-sm font-medium text-gray-700">{categoryConfig.label}</span>
                       </div>
                     </td>
                     
@@ -223,14 +216,10 @@ const AdminPanel = () => {
                     </td>
                     
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusDisplay(issue.status).style}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${statusConfig.style}`}>
                         <StatusIcon size={14} />
-                        {issue.status}
+                        {statusConfig.label}
                       </span>
-                    </td>
-                    
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {issue.department}
                     </td>
                     
                     <td className="px-6 py-4 text-sm text-gray-500">
@@ -257,9 +246,9 @@ const AdminPanel = () => {
             </tbody>
           </table>
           
-          {issues.length === 0 && (
+          {issues.length === 0 && !loading && (
             <div className="text-center py-12 text-gray-500">
-              No issues found.
+              No issues found in the database.
             </div>
           )}
         </div>

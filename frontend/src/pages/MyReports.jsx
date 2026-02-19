@@ -1,85 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  MapPin, 
-  Calendar, 
-  ThumbsUp, 
-  Plus,
-  AlertCircle,
-  Trash,
-  Droplet,
-  Lightbulb,
-  Clock,
-  CheckCircle,
-  User,
-  Wrench,
-  Eye
+  MapPin, Calendar, ThumbsUp, Plus, AlertCircle, 
+  Trash, Droplet, Lightbulb, Clock, CheckCircle, 
+  User, Wrench, Eye, Loader2 
 } from 'lucide-react';
+import api from '../services/api'; // Import our API service
 
 const MyReports = () => {
-  // Mock Data matching your screenshot exactly
-  const [myReports, setMyReports] = useState([
-    {
-      id: 1,
-      title: "Large Pothole on Main Street",
-      description: "A large pothole has formed near the intersection of Main Street and Oak Avenue. It's about 2 feet wide and 6 inches deep. Several cars have been damaged.",
-      category: "Pothole",
-      status: "Submitted",
-      priority: "High",
-      location: "Main Street & Oak Avenue",
-      date: "Feb 17",
-      votes: 12
-    },
-    {
-      id: 2,
-      title: "Garbage Pile Behind Market",
-      description: "A large pile of garbage has accumulated behind the Central Market area. It has been there for over a week and is causing a foul smell.",
-      category: "Garbage",
-      status: "Assigned",
-      priority: "Medium",
-      location: "Behind Central Market, Sector 15",
-      date: "Feb 17",
-      votes: 8
-    },
-    {
-      id: 3,
-      title: "Water Pipe Leaking Near School",
-      description: "A water pipe has been leaking continuously near Government School, causing water wastage and waterlogging on the road.",
-      category: "Water Leakage",
-      status: "In Progress",
-      priority: "Critical",
-      location: "Near Government School, Block B",
-      date: "Feb 17",
-      votes: 23
-    },
-    {
-      id: 4,
-      title: "Streetlight Out on Elm Road",
-      description: "Three consecutive streetlights are not working on Elm Road, making the area very dark and unsafe at night.",
-      category: "Streetlight",
-      status: "Under Review",
-      priority: "Medium",
-      location: "Elm Road, Sector 22",
-      date: "Feb 17",
-      votes: 5
-    }
-  ]);
+  const [myReports, setMyReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Helper for Status Badge Colors & Icons
+  // 1. Fetch data from Django when the page loads
+  useEffect(() => {
+    const fetchMyIssues = async () => {
+      try {
+        // Calls the api_my_issues view from your Django backend
+        const response = await api.get('/api/my_issues/'); 
+        
+        // Map Django's integer priority to our UI strings
+        const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
+
+        // Format the Django data to match what our UI components expect
+        const formattedIssues = response.data.map(issue => ({
+          id: issue.id,
+          title: issue.title,
+          description: issue.description,
+          category: issue.category, // e.g., "POTHOLE"
+          status: issue.status,     // e.g., "PENDING" or "IN_PROGRESS"
+          priority: priorityMap[issue.priority] || 'Medium',
+          location: `${issue.latitude.toFixed(4)}, ${issue.longitude.toFixed(4)}`,
+          // Format Django's datetime string into "Feb 17"
+          date: new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 
+          votes: 0 // Placeholder: Add votes to models.py later if you want this feature!
+        }));
+
+        setMyReports(formattedIssues);
+      } catch (err) {
+        console.error("Failed to fetch reports:", err);
+        setError("Could not load your reports. Please check your connection.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyIssues();
+  }, []);
+
+  // Helper for Status Badge Colors & Icons (Updated to match Django's exact choices)
   const getStatusDisplay = (status) => {
     switch(status) {
-      case 'Submitted': 
-        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock };
-      case 'Assigned': 
-        return { style: 'bg-purple-100 text-purple-800 border-purple-200', icon: User };
-      case 'In Progress': 
-        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench };
-      case 'Under Review': 
-        return { style: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: Eye };
-      case 'Resolved': 
-        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle };
+      case 'PENDING': 
+        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock, label: 'Pending' };
+      case 'IN_PROGRESS': 
+        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench, label: 'In Progress' };
+      case 'RESOLVED': 
+        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle, label: 'Resolved' };
       default: 
-        return { style: 'bg-gray-100 text-gray-800', icon: Clock };
+        return { style: 'bg-gray-100 text-gray-800', icon: Clock, label: status };
     }
   };
 
@@ -93,20 +72,39 @@ const MyReports = () => {
     }
   };
 
-  // Helper for Category Icons
+  // Helper for Category Icons (Updated to match Django's exact choices)
   const getCategoryIcon = (category) => {
      switch(category) {
-        case 'Pothole': return <AlertCircle className="text-orange-500" size={20} />;
-        case 'Garbage': return <Trash className="text-green-500" size={20} />;
-        case 'Water Leakage': return <Droplet className="text-blue-500" size={20} />;
-        case 'Streetlight': return <Lightbulb className="text-yellow-500" size={20} />;
+        case 'POTHOLE': return <AlertCircle className="text-orange-500" size={20} />;
+        case 'GARBAGE': return <Trash className="text-green-500" size={20} />;
+        case 'WATER': return <Droplet className="text-blue-500" size={20} />;
+        case 'STREETLIGHT': return <Lightbulb className="text-yellow-500" size={20} />;
         default: return <AlertCircle className="text-gray-500" size={20} />;
      }
   };
 
+  // 2. Render Loading State
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-indigo-600">
+        <Loader2 className="animate-spin mb-4" size={32} />
+        <p className="font-medium">Loading your reports...</p>
+      </div>
+    );
+  }
+
+  // 3. Render Error State
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-center gap-3">
+        <AlertCircle size={20} />
+        <p>{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto">
-      
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -126,14 +124,15 @@ const MyReports = () => {
       {/* Issues List */}
       <div className="space-y-4">
         {myReports.map((report) => {
-          const StatusIcon = getStatusDisplay(report.status).icon;
+          const statusConfig = getStatusDisplay(report.status);
+          const StatusIcon = statusConfig.icon;
           
           return (
             <div key={report.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group">
               <div className="flex flex-col md:flex-row gap-4 justify-between items-start">
                 
                 <div className="flex gap-4 flex-1">
-                  {/* Category Icon Container */}
+                  {/* Category Icon */}
                   <div className="hidden sm:flex h-12 w-12 rounded-full bg-gray-50 items-center justify-center flex-shrink-0 border border-gray-100">
                     {getCategoryIcon(report.category)}
                   </div>
@@ -141,7 +140,7 @@ const MyReports = () => {
                   {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors capitalize">
                         {report.title}
                       </h3>
                     </div>
@@ -157,17 +156,12 @@ const MyReports = () => {
                       
                       <div className="flex items-center gap-1.5">
                         <MapPin size={16} className="text-gray-400" />
-                        <span>{report.location}</span>
+                        <span>Lat: {report.location.split(',')[0]}</span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <Calendar size={16} className="text-gray-400" />
                         <span>{report.date}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <ThumbsUp size={16} className="text-gray-400" />
-                        <span>{report.votes}</span>
                       </div>
                     </div>
                   </div>
@@ -175,15 +169,10 @@ const MyReports = () => {
 
                 {/* Status Badge */}
                 <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end mt-4 md:mt-0 pl-0 md:pl-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 h-full">
-                  <span className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusDisplay(report.status).style}`}>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${statusConfig.style}`}>
                     <StatusIcon size={14} />
-                    {report.status}
+                    {statusConfig.label}
                   </span>
-                  
-                  {/* Mobile View Icon */}
-                  <div className="md:hidden">
-                     {getCategoryIcon(report.category)}
-                  </div>
                 </div>
 
               </div>

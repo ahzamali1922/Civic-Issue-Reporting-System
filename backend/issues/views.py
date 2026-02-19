@@ -40,6 +40,14 @@ def api_my_issues(request):
     serializer = IssueSerializer(issues, many=True, context={'request': request})
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_all_issues(request):
+    # Fetch all issues, ordering by the newest first
+    issues = Issue.objects.all().order_by('-created_at')
+    serializer = IssueSerializer(issues, many=True, context={'request': request})
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
