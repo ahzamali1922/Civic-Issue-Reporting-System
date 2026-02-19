@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from .serializers import IssueSerializer
 
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import authentication_classes
 
 
 
@@ -23,27 +24,62 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
 def api_me(request):
     return Response({
         "username": request.user.username,
         "is_staff": request.user.is_staff
     })
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
 def api_my_issues(request):
     issues = Issue.objects.filter(user=request.user)
     serializer = IssueSerializer(issues, many=True, context={'request': request})
     return Response(serializer.data)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
 def api_create_issue(request):
     serializer = IssueSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(user=request.user)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+from django.contrib.auth import authenticate, login
+from rest_framework import status
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        return Response({
+            "message": "Login successful",
+            "username": user.username,
+            "is_staff": user.is_staff
+        })
+    else:
+        return Response(
+            {"error": "Invalid credentials"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
 
 
 @login_required

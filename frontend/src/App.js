@@ -1,30 +1,40 @@
-import { useEffect, useState } from "react";
-import { getMyIssues } from "./services/api";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+
+// 1. Import all your actual pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import ReportIssue from './pages/ReportIssue';
+import AllIssues from './pages/AllIssues';
+import AdminPanel from './pages/AdminPanel';
+import IssueMap from './pages/IssueMap';
+import MyReports from './pages/MyReports'; // We will build this next!
 
 function App() {
-    const [issues, setIssues] = useState([]);
-    const [error, setError] = useState("");
+  // Simple check for now (we can connect this to your Django backend later)
+  const isAuthenticated = true; 
 
-    useEffect(() => {
-        getMyIssues()
-            .then(data => setIssues(data))
-            .catch(() => setError("User not logged in"));
-    }, []);
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
 
-    return (
-        <div style={{ padding: "20px" }}>
-            <h2>React ↔ Django API Test</h2>
-
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
-            {issues.map(issue => (
-                <div key={issue.id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-                    <h4>{issue.title}</h4>
-                    <p>Status: {issue.status}</p>
-                </div>
-            ))}
-        </div>
-    );
+        {/* Protected Routes inside Layout */}
+        <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/report-issue" element={<ReportIssue />} />
+          <Route path="/issues" element={<AllIssues />} />
+          <Route path="/map" element={<IssueMap />} />
+          <Route path="/my-reports" element={<MyReports />} />
+          <Route path="/admin-panel" element={<AdminPanel />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

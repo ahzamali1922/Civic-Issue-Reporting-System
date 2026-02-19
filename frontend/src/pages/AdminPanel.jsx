@@ -1,0 +1,272 @@
+import React, { useState } from 'react';
+import { 
+  Activity, 
+  Clock, 
+  AlertTriangle, 
+  CheckCircle, 
+  Edit2, 
+  Trash2, 
+  Filter,
+  AlertCircle,
+  Trash,
+  Droplet,
+  Lightbulb,
+  Waves,
+  User,
+  Wrench,
+  Eye
+} from 'lucide-react';
+
+const AdminPanel = () => {
+  // Mock Data matching your screenshot exactly
+  const [issues, setIssues] = useState([
+    {
+      id: 1,
+      title: "Large Pothole on Main Street",
+      location: "Main Street & Oak Avenue",
+      category: "Pothole",
+      severity: "High",
+      status: "Submitted",
+      department: "—",
+      date: "Feb 17"
+    },
+    {
+      id: 2,
+      title: "Garbage Pile Behind Market",
+      location: "Behind Central Market, Sector 15",
+      category: "Garbage",
+      severity: "Medium",
+      status: "Assigned",
+      department: "Sanitation",
+      date: "Feb 17"
+    },
+    {
+      id: 3,
+      title: "Water Pipe Leaking Near School",
+      location: "Near Government School, Block B",
+      category: "Water Leakage",
+      severity: "Critical",
+      status: "In Progress",
+      department: "Water Department",
+      date: "Feb 17"
+    },
+    {
+      id: 4,
+      title: "Streetlight Out on Elm Road",
+      location: "Elm Road, Sector 22",
+      category: "Streetlight",
+      severity: "Medium",
+      status: "Under Review",
+      department: "—",
+      date: "Feb 17"
+    },
+    {
+      id: 5,
+      title: "Blocked Drainage Causing Flood",
+      location: "Park Avenue, Block C",
+      category: "Drainage",
+      severity: "High",
+      status: "Resolved",
+      department: "Public Works",
+      date: "Feb 17"
+    }
+  ]);
+
+  // Helper for Status Badge Colors & Icons
+  const getStatusDisplay = (status) => {
+    switch(status) {
+      case 'Submitted': 
+        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock };
+      case 'Assigned': 
+        return { style: 'bg-purple-100 text-purple-800 border-purple-200', icon: User };
+      case 'In Progress': 
+        return { style: 'bg-blue-100 text-blue-800 border-blue-200', icon: Wrench };
+      case 'Under Review': 
+        return { style: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: Eye };
+      case 'Resolved': 
+        return { style: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle };
+      default: 
+        return { style: 'bg-gray-100 text-gray-800', icon: Clock };
+    }
+  };
+
+  // Helper for Severity Badge Colors
+  const getSeverityStyle = (severity) => {
+    switch(severity) {
+      case 'Critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'High': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'Medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  // Helper for Category Icons
+  const getCategoryDisplay = (category) => {
+     switch(category) {
+        case 'Pothole': return { color: 'text-orange-500', icon: AlertCircle };
+        case 'Garbage': return { color: 'text-green-500', icon: Trash };
+        case 'Water Leakage': return { color: 'text-blue-500', icon: Droplet };
+        case 'Streetlight': return { color: 'text-yellow-500', icon: Lightbulb };
+        case 'Drainage': return { color: 'text-cyan-500', icon: Waves };
+        default: return { color: 'text-gray-500', icon: AlertCircle };
+     }
+  };
+
+  const handleDelete = (id) => {
+    if(window.confirm("Are you sure you want to delete this issue?")) {
+        setIssues(issues.filter(issue => issue.id !== id));
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8">
+      
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+          <p className="text-gray-500 mt-1">Manage and assign reported issues</p>
+        </div>
+        <div className="flex gap-3">
+             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                <Filter size={18} />
+                <span>Filter</span>
+             </button>
+             <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                <Activity size={18} />
+                <span>Generate Report</span>
+             </button>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total</p>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">5</h3>
+          </div>
+          <div className="p-3 bg-indigo-50 rounded-lg">
+            <Activity className="text-indigo-600" size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending Review</p>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">2</h3>
+          </div>
+          <div className="p-3 bg-orange-50 rounded-lg">
+            <Clock className="text-orange-600" size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">In Progress</p>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">2</h3>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <AlertTriangle className="text-blue-600" size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Resolved</p>
+            <h3 className="text-3xl font-bold text-gray-900 mt-2">1</h3>
+          </div>
+          <div className="p-3 bg-green-50 rounded-lg">
+            <CheckCircle className="text-green-600" size={24} />
+          </div>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Issue</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Severity</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Status</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Department</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">Date</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {issues.map((issue) => {
+                const StatusIcon = getStatusDisplay(issue.status).icon;
+                const CategoryIcon = getCategoryDisplay(issue.category).icon;
+
+                return (
+                  <tr key={issue.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-gray-900">{issue.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{issue.location}</p>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <CategoryIcon className={getCategoryDisplay(issue.category).color} size={18} />
+                        <span className="text-sm font-medium text-gray-700">{issue.category}</span>
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded border text-xs font-medium ${getSeverityStyle(issue.severity)}`}>
+                        {issue.severity}
+                      </span>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusDisplay(issue.status).style}`}>
+                        <StatusIcon size={14} />
+                        {issue.status}
+                      </span>
+                    </td>
+                    
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {issue.department}
+                    </td>
+                    
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {issue.date}
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-3">
+                        <button className="text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Issue">
+                          <Edit2 size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(issue.id)}
+                          className="text-gray-400 hover:text-red-600 transition-colors" 
+                          title="Delete Issue"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          
+          {issues.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              No issues found.
+            </div>
+          )}
+        </div>
+      </div>
+      
+    </div>
+  );
+};
+
+export default AdminPanel;

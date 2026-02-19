@@ -1,14 +1,11 @@
-const API_BASE = "http://127.0.0.1:8000";
+import axios from 'axios';
 
-// fetch logged-in user's issues
-export async function getMyIssues() {
-    const response = await fetch(`${API_BASE}/api/my-issues/`, {
-        credentials: "include", // VERY IMPORTANT
-    });
+const api = axios.create({
+  baseURL: 'http://127.0.0.1:8000', // Matches your Django local server
+  withCredentials: true, // CRITICAL: This sends the session cookie to Django
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    if (!response.ok) {
-        throw new Error("Not authenticated");
-    }
-
-    return response.json();
-}
+export default api;

@@ -20,4 +20,7 @@ urlpatterns = [
     path('api/my-issues/', views.api_my_issues),
     path('api/create-issue/', views.api_create_issue),
 
+    path('api/login/', views.api_login),
+
+
 ]
