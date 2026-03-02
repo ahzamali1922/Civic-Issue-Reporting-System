@@ -7,93 +7,73 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-// Reusable Stat Card Component
-const StatCard = ({ title, count, icon: Icon, colorClass, bgClass }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-    <div>
-      <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">{title}</p>
-      <h3 className="text-3xl font-bold text-gray-900 mt-2">{count}</h3>
-    </div>
-    <div className={`p-4 rounded-full ${bgClass}`}>
-      <Icon className={colorClass} size={24} />
+// Reusable Stat Card Component - Upgraded with Glassmorphism
+const StatCard = ({ title, count, icon: Icon, colorClass, bgClass, delay }) => (
+  <div className={`bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-white shadow-xl shadow-gray-200/50 hover:-translate-y-1 transition-transform duration-300 animate-fade-in-up ${delay}`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">{title}</p>
+        <h3 className="text-4xl font-extrabold text-gray-900">{count}</h3>
+      </div>
+      <div className={`p-4 rounded-2xl ${bgClass}`}>
+        <Icon className={colorClass} size={28} />
+      </div>
     </div>
   </div>
 );
 
-// Reusable Recent Issue Card Component
+// Reusable Recent Issue Card Component - Upgraded
 const IssueCard = ({ issue }) => {
-  // Helper to get status colors (Mapped to Django Choices)
   const getStatusDisplay = (status) => {
     switch(status) {
       case 'PENDING': 
-        return { style: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' };
+        return { style: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: Clock };
       case 'IN_PROGRESS': 
-        return { style: 'bg-blue-100 text-blue-800 border-blue-200', label: 'In Progress' };
+        return { style: 'bg-blue-50 text-blue-700 border-blue-200', label: 'In Progress', icon: Activity };
       case 'RESOLVED': 
-        return { style: 'bg-green-100 text-green-800 border-green-200', label: 'Resolved' };
+        return { style: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Resolved', icon: CheckCircle };
       default: 
-        return { style: 'bg-gray-100 text-gray-800', label: status };
+        return { style: 'bg-gray-50 text-gray-700 border-gray-200', label: status, icon: AlertCircle };
     }
   };
 
-  // Helper to get priority colors
-  const getPriorityColor = (priority) => {
-    switch(priority) {
-      case 'Critical': return 'text-red-600 bg-red-50 border-red-200';
-      case 'High': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'Medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  // Helper for Category Icons
   const getCategoryIcon = (category) => {
     switch(category) {
-       case 'POTHOLE': return <AlertCircle className="text-orange-500" size={20} />;
-       case 'GARBAGE': return <Trash className="text-green-500" size={20} />;
-       case 'WATER': return <Droplet className="text-blue-500" size={20} />;
-       case 'STREETLIGHT': return <Lightbulb className="text-yellow-500" size={20} />;
-       case 'DRAINAGE': return <Waves className="text-cyan-500" size={20} />;
-       default: return <AlertCircle className="text-gray-500" size={20} />;
+      case 'GARBAGE': return <Trash className="text-emerald-500" size={20} />;
+      case 'WATER': return <Droplet className="text-blue-500" size={20} />;
+      case 'ELECTRICITY': return <Lightbulb className="text-amber-500" size={20} />;
+      case 'POTHOLE': return <Waves className="text-stone-500" size={20} />;
+      default: return <Wrench className="text-gray-500" size={20} />;
     }
   };
 
   const statusConfig = getStatusDisplay(issue.status);
+  const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow mb-4">
-      <div className="flex justify-between items-start">
-        <div className="flex gap-4">
-          <div className="mt-1">
-             <div className="p-2 bg-gray-50 border border-gray-100 rounded-lg">
-               {getCategoryIcon(issue.category)}
-             </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 capitalize">{issue.title}</h3>
-            <p className="text-gray-600 mt-1 text-sm line-clamp-2">{issue.description}</p>
-            
-            <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-              <span className={`px-2 py-1 rounded border text-xs font-medium ${getPriorityColor(issue.priority)}`}>
-                {issue.priority}
-              </span>
-              <div className="flex items-center gap-1">
-                <MapPin size={14} />
-                <span>Lat: {issue.location.split(',')[0]}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Calendar size={14} />
-                <span>{issue.date}</span>
-              </div>
-              <div className="flex items-center gap-1 hover:text-indigo-600 cursor-pointer transition-colors">
-                <ThumbsUp size={14} />
-                <span>{issue.votes}</span>
-              </div>
-            </div>
+    <div className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-gray-50/50 hover:bg-blue-50/50 rounded-2xl transition-colors border border-transparent hover:border-blue-100">
+      <div className="flex items-start gap-4 mb-3 sm:mb-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 group-hover:scale-110 transition-transform">
+          {getCategoryIcon(issue.category)}
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors text-lg">{issue.title}</h4>
+          <div className="flex items-center gap-4 mt-1">
+            <span className="text-sm text-gray-500 flex items-center gap-1 font-medium">
+              <MapPin size={14} className="text-gray-400" />
+              {issue.location}
+            </span>
+            <span className="text-sm text-gray-500 flex items-center gap-1 font-medium">
+              <Calendar size={14} className="text-gray-400" />
+              {new Date(issue.created_at).toLocaleDateString()}
+            </span>
           </div>
         </div>
-
-        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusConfig.style}`}>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <span className={`px-4 py-1.5 rounded-full text-xs font-bold border flex items-center gap-1.5 ${statusConfig.style}`}>
+          <StatusIcon size={14} />
           {statusConfig.label}
         </span>
       </div>
@@ -110,39 +90,16 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await api.get('/api/all-issues/');
-        const data = response.data;
-
-        // 1. Calculate Stats
-        const total = data.length;
-        // Active means it's neither resolved nor rejected
-        const active = data.filter(issue => issue.status === 'PENDING' || issue.status === 'IN_PROGRESS').length;
-        const resolved = data.filter(issue => issue.status === 'RESOLVED').length;
-        // priority 3 is Critical in your mapping
-        const critical = data.filter(issue => issue.priority === 3).length; 
-
-        setStats({ total, active, resolved, critical });
-
-        // 2. Format Recent Issues (Take the top 3)
-        const priorityMap = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
+        const [statsRes, issuesRes] = await Promise.all([
+          api.get('/api/dashboard-stats/'),
+          api.get('/api/recent-issues/')
+        ]);
         
-        const formattedRecent = data.slice(0, 3).map(issue => ({
-          id: issue.id,
-          title: issue.title,
-          description: issue.description,
-          category: issue.category,
-          status: issue.status,
-          priority: priorityMap[issue.priority] || 'Medium',
-          location: `${issue.latitude.toFixed(4)}, ${issue.longitude.toFixed(4)}`,
-          date: new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          votes: 0 // Placeholder
-        }));
-
-        setRecentIssues(formattedRecent);
-
+        setStats(statsRes.data);
+        setRecentIssues(issuesRes.data);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError("Unable to load dashboard data. Please try again.");
+        setError('Failed to load dashboard data.');
       } finally {
         setLoading(false);
       }
@@ -153,104 +110,84 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-indigo-600">
-        <Loader2 className="animate-spin mb-4" size={32} />
-        <p className="font-medium">Loading your dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="animate-spin text-blue-600" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-slate-50 font-sans relative z-0 overflow-hidden py-12 px-6 lg:px-8">
       
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 border border-red-100">
-          <AlertCircle size={20} />
-          {error}
-        </div>
-      )}
+      {/* --- Ambient Background Effects --- */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-100/60 to-transparent"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+      </div>
 
-      {/* 1. Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 md:p-12 shadow-lg">
-        <div className="relative z-10 max-w-2xl">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Civic Issue Tracker</h1>
-          <p className="text-indigo-100 text-lg mb-8">
-            Report, track, and resolve civic issues in your community. Together we build better cities.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link 
-              to="/report-issue" 
-              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm"
-            >
-              <Plus size={20} />
-              Report Issue
-            </Link>
-            <Link 
-              to="/issues" 
-              className="bg-indigo-500/30 backdrop-blur-sm border border-indigo-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-500/40 transition-colors flex items-center gap-2"
-            >
-              View All Issues
-              <ArrowRight size={20} />
-            </Link>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto space-y-10">
         
-        {/* Decorative Circle Background */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-      </div>
-
-      {/* 2. Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Reports" 
-          count={stats.total} 
-          icon={Activity} 
-          colorClass="text-indigo-600" 
-          bgClass="bg-indigo-50" 
-        />
-        <StatCard 
-          title="Active Issues" 
-          count={stats.active} 
-          icon={Clock} 
-          colorClass="text-amber-600" 
-          bgClass="bg-amber-50" 
-        />
-        <StatCard 
-          title="Resolved" 
-          count={stats.resolved} 
-          icon={CheckCircle} 
-          colorClass="text-green-600" 
-          bgClass="bg-green-50" 
-        />
-        <StatCard 
-          title="Critical" 
-          count={stats.critical} 
-          icon={AlertTriangle} 
-          colorClass="text-red-600" 
-          bgClass="bg-red-50" 
-        />
-      </div>
-
-      {/* 3. Recent Reports Section */}
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Reports</h2>
-          <Link to="/issues" className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1 transition-colors">
-            View all <ArrowRight size={16} />
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in-up">
+          <div>
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Dashboard Overview</h1>
+            <p className="text-gray-500 font-medium mt-2 text-lg">Track your reports and make a difference.</p>
+          </div>
+          <Link 
+            to="/report-issue" 
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3.5 rounded-full font-bold hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all"
+          >
+            <Plus size={20} />
+            Report New Issue
           </Link>
         </div>
-        
-        <div className="space-y-4">
-          {recentIssues.length > 0 ? (
-            recentIssues.map(issue => (
-              <IssueCard key={issue.id} issue={issue} />
-            ))
-          ) : (
-             <div className="text-center py-12 bg-white rounded-xl border border-gray-200 border-dashed">
-               <p className="text-gray-500">No recent reports found in the system.</p>
-             </div>
-          )}
+
+        {error && (
+          <div className="bg-red-50/80 backdrop-blur-md border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in-up">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Total Reports" count={stats.total} icon={Activity} colorClass="text-blue-600" bgClass="bg-blue-50" delay="[animation-delay:100ms]" />
+          <StatCard title="Active Issues" count={stats.active} icon={Clock} colorClass="text-amber-500" bgClass="bg-amber-50" delay="[animation-delay:200ms]" />
+          <StatCard title="Resolved" count={stats.resolved} icon={CheckCircle} colorClass="text-emerald-500" bgClass="bg-emerald-50" delay="[animation-delay:300ms]" />
+          <StatCard title="Critical" count={stats.critical} icon={AlertTriangle} colorClass="text-red-500" bgClass="bg-red-50" delay="[animation-delay:400ms]" />
         </div>
+
+        {/* Recent Reports Section */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-xl shadow-gray-200/50 overflow-hidden animate-fade-in-up [animation-delay:500ms]">
+          <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white/50">
+            <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+              <Activity className="text-blue-500" size={24} />
+              Recent Reports
+            </h2>
+            <Link to="/issues" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group">
+              View All <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          
+          <div className="p-6">
+            {recentIssues.length > 0 ? (
+              <div className="space-y-3">
+                {recentIssues.map(issue => (
+                  <IssueCard key={issue.id} issue={issue} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 px-4">
+                <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                  <ThumbsUp className="text-gray-400" size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No recent reports</h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">Your neighborhood is looking good! If you spot an issue, click the button above to report it.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

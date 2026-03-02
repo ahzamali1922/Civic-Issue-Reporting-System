@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock, User, AlertCircle, Loader2 } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Lock, User, AlertCircle, Loader2, ArrowLeft, Shield, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -11,7 +11,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login } = useAuth(); // Bring in our real login function
+  const { login } = useAuth(); 
   
   const loginType = searchParams.get('type') || 'citizen'; 
   const isAdmin = loginType === 'admin';
@@ -22,10 +22,7 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      // Send the real request to Django
       const userData = await login(username, password);
-      
-      // Verify role access
       if (isAdmin) {
         if (userData.is_staff) {
             navigate('/admin-panel');
@@ -43,77 +40,108 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+      
+      {/* --- Ambient Background Effects --- */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob ${isAdmin ? 'bg-purple-300' : 'bg-blue-300'}`}></div>
+        <div className={`absolute top-1/3 right-1/4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000 ${isAdmin ? 'bg-indigo-300' : 'bg-cyan-300'}`}></div>
+        <div className={`absolute -bottom-32 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000 ${isAdmin ? 'bg-fuchsia-300' : 'bg-sky-300'}`}></div>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 animate-fade-in-up">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 mb-8 transition-colors group">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </Link>
         
-        <div className="text-center mb-8">
-          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isAdmin ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-            {isAdmin ? <Lock size={32} /> : <User size={32} />}
+        <div className="flex justify-center">
+          <div className={`p-4 rounded-2xl shadow-inner ${isAdmin ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+            {isAdmin ? <Shield size={36} /> : <Users size={36} />}
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            {isAdmin ? 'Authority Login' : 'Citizen Login'}
-          </h2>
-          <p className="text-gray-500 mt-2">Enter your credentials to continue</p>
         </div>
+        <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900 tracking-tight">
+          {isAdmin ? 'Authority Portal' : 'Citizen Login'}
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600 font-medium">
+          {isAdmin ? 'Authorized personnel access only' : 'Sign in to report and track neighborhood issues'}
+        </p>
+      </div>
 
-        {error && (
-          <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm border border-red-100">
-            <AlertCircle size={18} />
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                placeholder="Enter your username"
-                required
-              />
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 animate-fade-in-up [animation-delay:200ms]">
+        {/* Glassmorphic Card */}
+        <div className="bg-white/80 backdrop-blur-xl py-8 px-4 shadow-2xl shadow-gray-200/50 sm:rounded-3xl sm:px-10 border border-white">
+          
+          {error && (
+            <div className="mb-6 bg-red-50/80 backdrop-blur-sm border-l-4 border-red-500 p-4 rounded-r-lg flex items-center gap-3 animate-fade-in">
+              <AlertCircle className="text-red-500" size={20} />
+              <p className="text-sm text-red-700 font-medium">{error}</p>
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                placeholder="••••••••"
-                required
-              />
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Username / Email</label>
+              <div className="relative group">
+                <User className={`absolute left-3 top-3.5 transition-colors ${isAdmin ? 'text-purple-400 group-focus-within:text-purple-600' : 'text-blue-400 group-focus-within:text-blue-600'}`} size={20} />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:outline-none transition-all ${isAdmin ? 'focus:ring-purple-500/20 focus:border-purple-500' : 'focus:ring-blue-500/20 focus:border-blue-500'}`}
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 rounded-lg text-white font-medium shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 ${
-              isAdmin 
-                ? 'bg-purple-600 hover:bg-purple-700' 
-                : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
-            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
-          </button>
-        </form>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+              <div className="relative group">
+                <Lock className={`absolute left-3 top-3.5 transition-colors ${isAdmin ? 'text-purple-400 group-focus-within:text-purple-600' : 'text-blue-400 group-focus-within:text-blue-600'}`} size={20} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:outline-none transition-all ${isAdmin ? 'focus:ring-purple-500/20 focus:border-purple-500' : 'focus:ring-blue-500/20 focus:border-blue-500'}`}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </div>
 
-        <div className="mt-6 text-center">
-          <button 
-            onClick={() => navigate('/')}
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            ← Back to Home
-          </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full py-3.5 rounded-xl text-white font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 hover:-translate-y-0.5 active:translate-y-0 ${
+                isAdmin 
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/30' 
+                  : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-blue-500/30'
+              }`}
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Sign In Securely'}
+            </button>
+          </form>
+
+          {!isAdmin && (
+            <div className="mt-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-3 bg-white text-gray-500 font-medium rounded-full">
+                    Don't have an account?
+                  </span>
+                </div>
+              </div>
+              <div className="mt-6 text-center">
+                <Link to="/signup" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                  Create an account now
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

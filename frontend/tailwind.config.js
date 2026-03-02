@@ -5,20 +5,25 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        primary: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          500: '#6366f1', // Indigo-ish purple from your screenshot
-          600: '#4f46e5', // Darker indigo
-          700: '#4338ca', 
+      animation: {
+        blob: "blob 7s infinite",
+        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'fade-in': 'fadeIn 1s ease-out forwards',
+      },
+      keyframes: {
+        blob: {
+          "0%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+          "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+          "100%": { transform: "translate(0px, 0px) scale(1)" },
         },
-        // Status badge colors
-        status: {
-          pending: '#f59e0b',    // Amber
-          progress: '#3b82f6',   // Blue
-          resolved: '#10b981',   // Green
-          critical: '#ef4444',   // Red
+        fadeInUp: {
+          '0%': { opacity: 0, transform: 'translateY(20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+        fadeIn: {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 1 },
         }
       }
     },
