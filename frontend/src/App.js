@@ -13,6 +13,7 @@ import AdminPanel from './pages/AdminPanel';
 import IssueMap from './pages/IssueMap';
 import MyReports from './pages/MyReports';
 import About from './pages/About';
+import Signup from './pages/Signup';
 
 // This component checks if the user is real before letting them see the page
 const ProtectedRoute = ({ children }) => {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/features" element={<Features />} />
           <Route path="/about" element={<About />} />
+          <Route path="/signup" element={<Signup />} />
 
           {/* Protected Routes inside Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
