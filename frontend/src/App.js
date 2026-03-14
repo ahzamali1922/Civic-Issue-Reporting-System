@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 
 import Home from './pages/Home';
+import Features from './pages/Features';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ReportIssue from './pages/ReportIssue';
@@ -11,6 +12,7 @@ import AllIssues from './pages/AllIssues';
 import AdminPanel from './pages/AdminPanel';
 import IssueMap from './pages/IssueMap';
 import MyReports from './pages/MyReports';
+import About from './pages/About';
 
 // This component checks if the user is real before letting them see the page
 const ProtectedRoute = ({ children }) => {
@@ -30,6 +32,8 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/about" element={<About />} />
 
           {/* Protected Routes inside Layout */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>

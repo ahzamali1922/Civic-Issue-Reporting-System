@@ -29,9 +29,18 @@ const Navbar = () => {
         
         {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-8 text-gray-600 font-medium">
-          <Link to="/" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300 text-blue-600">Home</Link>
-          <Link to="/features" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300">Features</Link>
-          <Link to="/how-it-works" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300">How It Works</Link>
+          <Link to="/" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300 text-blue-600">
+            Home
+          </Link>
+          
+          <Link to="/features" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300">
+            Features
+          </Link>
+          
+          {/* Replaced 'How It Works' with 'About' */}
+          <Link to="/about" className="hover:text-blue-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all after:duration-300">
+            About Us
+          </Link>
         </div>
 
         {/* Action Buttons */}
