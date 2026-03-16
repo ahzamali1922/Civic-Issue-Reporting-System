@@ -101,7 +101,7 @@ const Home = () => {
               <div className="bg-purple-50 p-5 rounded-2xl mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 relative z-10">
                 <Shield size={36} className="text-purple-600 group-hover:text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 relative z-10">Authority Login</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 relative z-10">Admin Login</h3>
               <p className="text-gray-500 leading-relaxed relative z-10">Manage incoming reports, assign field workers, and update resolution statuses in real-time.</p>
             </Link>
             

@@ -25,8 +25,11 @@ const Layout = () => {
   const { user, logout } = useAuth(); 
 
   const handleLogout = async () => {
-    await logout(); // Kills the session
-    navigate('/login'); // Sends them back to the login screen
+    // 1. First, immediately navigate them to the public Home page
+    navigate('/'); 
+    
+    // 2. Then kill the session in the background
+    await logout();
   };
 
   // Safety check: if user hasn't loaded yet, don't crash
@@ -49,13 +52,20 @@ const Layout = () => {
               </Link>
 
               <nav className="hidden md:flex items-center gap-1">
-                <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/dashboard'} />
-                <NavItem to="/report-issue" icon={PlusCircle} label="Report Issue" active={location.pathname === '/report-issue'} />
+                {/* 🟢 ONLY SHOW TO REGULAR CITIZENS (Non-Admins) */}
+                {!user.is_staff && (
+                  <>
+                    <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/dashboard'} />
+                    <NavItem to="/report-issue" icon={PlusCircle} label="Report Issue" active={location.pathname === '/report-issue'} />
+                    <NavItem to="/my-reports" icon={FileText} label="My Reports" active={location.pathname === '/my-reports'} />
+                  </>
+                )}
+
+                {/* 🔵 SHOW TO EVERYONE (Citizens and Admins) */}
                 <NavItem to="/issues" icon={List} label="All Issues" active={location.pathname === '/issues'} />
                 <NavItem to="/map" icon={MapIcon} label="Issue Map" active={location.pathname === '/map'} />
-                <NavItem to="/my-reports" icon={FileText} label="My Reports" active={location.pathname === '/my-reports'} />
                 
-                {/* Only show Admin Panel if the logged-in user is staff */}
+                {/* 🔴 ONLY SHOW TO ADMINS */}
                 {user.is_staff && (
                   <NavItem to="/admin-panel" icon={Shield} label="Admin Panel" active={location.pathname === '/admin-panel'} />
                 )}

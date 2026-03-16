@@ -27,7 +27,7 @@ const Login = () => {
         if (userData.is_staff) {
             navigate('/admin-panel');
         } else {
-            setError("Access Denied: You do not have authority privileges.");
+            setError("Access Denied: You do not have admin privileges.");
         }
       } else {
         navigate('/dashboard');
@@ -61,7 +61,7 @@ const Login = () => {
           </div>
         </div>
         <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900 tracking-tight">
-          {isAdmin ? 'Authority Portal' : 'Citizen Login'}
+          {isAdmin ? 'Admin Portal' : 'Citizen Login'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 font-medium">
           {isAdmin ? 'Authorized personnel access only' : 'Sign in to report and track neighborhood issues'}
