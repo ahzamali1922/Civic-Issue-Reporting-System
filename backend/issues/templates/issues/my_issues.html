@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}My Issues{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">My Reported Issues</h3>
+
+<a href="/create/" class="btn btn-primary mb-3">+ Report New Issue</a>
+
+{% for issue in issues %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5>{{ issue.title }}</h5>
+        <p>Status: <strong>{{ issue.status }}</strong></p>
+
+        {% if issue.image %}
+            <img src="{{ issue.image.url }}" class="img-fluid mb-2" style="max-width:200px;">
+        {% endif %}
+
+        <details>
+            <summary>View Status History</summary>
+            <ul>
+                {% for h in issue.history.all %}
+                    <li>{{ h.status }} – {{ h.updated_at }}</li>
+                {% empty %}
+                    <li>No updates yet</li>
+                {% endfor %}
+            </ul>
+        </details>
+    </div>
+</div>
+{% empty %}
+<p>No issues reported.</p>
+{% endfor %}
+{% endblock %}
