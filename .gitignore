@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
+
+# Dataset
+dataset/
+ml_training/dataset/
+
+# DB
+db.sqlite3
+
+# Media files
+media/
