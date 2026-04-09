@@ -4,6 +4,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator  # type: ign
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 import os
+from tensorflow.keras.layers import Dropout # type: ignore
 
 IMG_SIZE = 224
 BATCH_SIZE = 8  # keep small if laptop is slow
@@ -20,7 +21,15 @@ if not os.path.exists(val_dir):
     raise FileNotFoundError(f"Validation dataset not found at {val_dir}")
 
 # Data generators
-train_gen = ImageDataGenerator(rescale=1./255).flow_from_directory(
+train_gen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=25,
+    zoom_range=0.3,
+    horizontal_flip=True,
+    brightness_range=[0.7, 1.3],
+    shear_range=0.2
+
+).flow_from_directory(
     train_dir,
     target_size=(IMG_SIZE, IMG_SIZE),
     batch_size=BATCH_SIZE,
@@ -41,23 +50,41 @@ base_model = MobileNetV2(weights='imagenet', include_top=False)
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dense(128, activation='relu')(x)
+x = Dropout(0.5)(x)
 predictions = Dense(5, activation='softmax')(x)  # 5 classes
 
 model = Model(inputs=base_model.input, outputs=predictions)
 
 # Freeze base layers
-for layer in base_model.layers:
+for layer in base_model.layers[:-50]:
     layer.trainable = False
+
+for layer in base_model.layers[-50:]:
+    layer.trainable = True
 
 # Compile model
 model.compile(
-    optimizer='adam',
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
     loss='categorical_crossentropy',
     metrics=['accuracy']
 )
 
+from tensorflow.keras.callbacks import EarlyStopping # type: ignore
+
+early_stop = EarlyStopping(
+    monitor='val_loss',
+    patience=3,
+    restore_best_weights=True
+)
+
 # Train
-model.fit(train_gen, validation_data=val_gen, epochs=5)
+model.fit(
+    train_gen,
+    validation_data=val_gen,
+    epochs=25,
+    callbacks=[early_stop]
+)
+print("Class indices:", train_gen.class_indices)
 
 # Save model
 model_path = os.path.join(BASE_DIR, "image_model.h5")
