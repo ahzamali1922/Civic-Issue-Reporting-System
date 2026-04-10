@@ -7,13 +7,15 @@ from django.contrib.auth.models import User
 class Issue(models.Model):
 
     CATEGORY_CHOICES = [
-        ('POTHOLE', 'Pothole'),
-        ('GARBAGE', 'Garbage'),
-        ('WATER', 'Water Leakage'),
-        ('STREETLIGHT', 'Street Light'),
-        ('DRAINAGE', 'Drainage'),
-        ('OTHER', 'Other'),
-    ]
+    ('ROAD_DAMAGE', 'Road Damage'),
+    ('GARBAGE', 'Garbage'),
+    ('WATER_ISSUE', 'Water Issue'),
+    ('ELECTRICAL', 'Electrical Issue'),
+    ('PUBLIC_PROPERTY', 'Public Property Damage'),
+    ('TRAFFIC_ISSUE', 'Traffic Issue'),
+    ('ANIMAL_ISSUE', 'Animal Issue'),
+    ('OTHER', 'Other'),
+]
 
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),

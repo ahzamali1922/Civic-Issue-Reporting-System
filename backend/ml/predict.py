@@ -21,7 +21,15 @@ with open(os.path.join(BASE_DIR, "vectorizer.pkl"), "rb") as f:
 # -------------------------------
 # CATEGORY ORDER (MUST MATCH TRAINING)
 # -------------------------------
-CATEGORIES = ['DRAINAGE', 'GARBAGE', 'POTHOLE', 'STREETLIGHT', 'WATER']
+CATEGORIES = [
+    'ROAD_DAMAGE',
+    'GARBAGE',
+    'WATER_ISSUE',
+    'ELECTRICAL',
+    'PUBLIC_PROPERTY',
+    'TRAFFIC_ISSUE',
+    'ANIMAL_ISSUE'
+]
 
 # -------------------------------
 # IMAGE PREDICTION
@@ -80,12 +88,14 @@ def get_priority(category):
     category = category.upper()
 
     priority_map = {
-        "WATER": 5,
-        "DRAINAGE": 5,
-        "POTHOLE": 4,
-        "GARBAGE": 3,
-        "STREETLIGHT": 2,
-        "OTHER": 1
-    }
+    "WATER_ISSUE": 5,
+    "ROAD_DAMAGE": 4,
+    "TRAFFIC_ISSUE": 4,
+    "GARBAGE": 3,
+    "ELECTRICAL": 2,
+    "PUBLIC_PROPERTY": 2,
+    "ANIMAL_ISSUE": 3,
+    "OTHER": 1
+}
 
     return priority_map.get(category, 1)
