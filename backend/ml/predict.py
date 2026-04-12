@@ -22,13 +22,13 @@ with open(os.path.join(BASE_DIR, "vectorizer.pkl"), "rb") as f:
 # CATEGORY ORDER (MUST MATCH TRAINING)
 # -------------------------------
 CATEGORIES = [
-    'ROAD_DAMAGE',
-    'GARBAGE',
-    'WATER_ISSUE',
+    'BROKEN_SIGN',
+    'DAMAGED_STRUCTURE',
     'ELECTRICAL',
-    'PUBLIC_PROPERTY',
-    'TRAFFIC_ISSUE',
-    'ANIMAL_ISSUE'
+    'FALLEN_TREE',
+    'GARBAGE',
+    'GRAFFITI',
+    'ROAD_DAMAGE'
 ]
 
 # -------------------------------
@@ -88,13 +88,13 @@ def get_priority(category):
     category = category.upper()
 
     priority_map = {
-    "WATER_ISSUE": 5,
-    "ROAD_DAMAGE": 4,
-    "TRAFFIC_ISSUE": 4,
+    "ROAD_DAMAGE": 5,
+    "FALLEN_TREE": 5,
+    "ELECTRICAL": 5,
+    "BROKEN_SIGN": 4,
+    "DAMAGED_STRUCTURE": 4,
     "GARBAGE": 3,
-    "ELECTRICAL": 2,
-    "PUBLIC_PROPERTY": 2,
-    "ANIMAL_ISSUE": 3,
+    "GRAFFITI": 2,
     "OTHER": 1
 }
 
