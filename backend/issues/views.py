@@ -4,6 +4,7 @@ from .models import Issue, IssueStatusHistory
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from .models import Authority
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -44,10 +45,28 @@ def api_my_issues(request):
 @permission_classes([IsAuthenticated])
 @authentication_classes([CsrfExemptSessionAuthentication])
 def api_all_issues(request):
-    # Fetch all issues, ordering by the newest first
-    issues = Issue.objects.all().order_by('-created_at')
-    serializer = IssueSerializer(issues, many=True, context={'request': request})
-    return Response(serializer.data)
+    user = request.user
+
+    try:
+        # 🔥 Check if user is an authority
+        authority = Authority.objects.filter(user=user).first()
+
+        if authority:
+            # ✅ Show only issues of that authority's categories
+            issues = Issue.objects.filter(
+                category__in=authority.categories
+            ).order_by('-created_at')
+        else:
+            # 👤 Normal user → show only their issues
+            issues = Issue.objects.filter(
+                user=user
+            ).order_by('-created_at')
+
+        serializer = IssueSerializer(issues, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

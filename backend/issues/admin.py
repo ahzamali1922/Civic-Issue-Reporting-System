@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from .models import Issue, IssueStatusHistory
+from .models import Authority
 
 
 @admin.register(Issue)
@@ -34,3 +35,10 @@ class IssueAdmin(admin.ModelAdmin):
 @admin.register(IssueStatusHistory)
 class IssueStatusHistoryAdmin(admin.ModelAdmin):
     list_display = ('issue', 'status', 'updated_at')
+
+@admin.register(Authority)
+class AuthorityAdmin(admin.ModelAdmin):
+    list_display = ('name', 'department', 'user', 'get_categories')
+
+    def get_categories(self, obj):
+        return ", ".join(obj.categories)
