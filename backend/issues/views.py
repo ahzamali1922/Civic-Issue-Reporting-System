@@ -57,15 +57,18 @@ def api_create_issue(request):
     if serializer.is_valid():
         instance = serializer.save(user=request.user)
 
-        # ML Prediction
-        if instance.image:
+        # Only use ML if the category wasn't explicitly provided by the frontend
+        if instance.image and (not instance.category or instance.category == 'OTHER'):
             category, confidence = final_prediction(
                 instance.image.path,
                 instance.description
             )
-
             instance.category = category
             instance.priority = get_priority(category)
+            instance.save()
+        else:
+            # Ensure priority is assigned based on frontend category choice
+            instance.priority = get_priority(instance.category)
             instance.save()
 
         return Response(serializer.data, status=201)
@@ -310,4 +313,54 @@ def api_delete_issue(request, pk):
         return Response({"message": "Issue deleted successfully"}, status=204)
     except Issue.DoesNotExist:
         return Response({"error": "Issue not found"}, status=404)
+    
+
+
+
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_predict(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    description = request.data.get('description', '')
+    image = request.FILES.get('image')
+
+    if not image:
+        return Response({"error": "An image is required for AI classification."}, status=400)
+
+    # Save image temporarily so predict.py can read the path
+    path = default_storage.save(f"temp/{image.name}", ContentFile(image.read()))
+    temp_image_path = default_storage.path(path)
+
+    try:
+        logger.info(f"Starting AI prediction for image: {image.name}")
+        category, confidence = final_prediction(temp_image_path, description)
+        logger.info(f"Prediction successful: {category} ({confidence})")
+        
+        return Response({
+            "category": category,
+            "confidence": confidence
+        })
+    except FileNotFoundError as e:
+        logger.error(f"Model file not found: {str(e)}")
+        return Response({"error": f"ML models not initialized: {str(e)}"}, status=503)
+    except RuntimeError as e:
+        logger.error(f"Runtime error in prediction: {str(e)}")
+        return Response({"error": f"ML service unavailable: {str(e)}"}, status=503)
+    except Exception as e:
+        logger.error(f"Prediction failed: {str(e)}", exc_info=True)
+        return Response({"error": f"AI prediction failed: {str(e)}"}, status=500)
+    finally:
+        # Clean up temporary file
+        try:
+            if os.path.exists(temp_image_path):
+                os.remove(temp_image_path)
+        except Exception as e:
+            logger.warning(f"Failed to clean up temp file: {str(e)}")
 

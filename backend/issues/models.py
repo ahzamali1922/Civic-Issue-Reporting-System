@@ -31,6 +31,7 @@ class Issue(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     latitude = models.FloatField()
     longitude = models.FloatField()
+    address_details = models.TextField(null=True, blank=True)
     priority = models.IntegerField(default=0)
     assigned_to = models.ForeignKey(
         User, 

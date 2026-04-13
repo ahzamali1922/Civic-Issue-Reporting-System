@@ -23,6 +23,7 @@ class IssueSerializer(serializers.ModelSerializer):
             'image',
             'latitude',
             'longitude',
+            'address_details',
             'created_at',
             'history',
         ]

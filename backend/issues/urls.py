@@ -29,5 +29,8 @@ urlpatterns = [
     path('api/dashboard-stats/', views.api_dashboard_stats),
     path('api/recent-issues/', views.api_recent_issues),
 
+    # Add this line inside your urlpatterns in urls.py
+    path('api/predict/', views.api_predict, name='api_predict'),
+
 
 ]
